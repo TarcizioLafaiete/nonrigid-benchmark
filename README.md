@@ -27,17 +27,17 @@ The whole process is very simple and we provide some utilities to help you evalu
 
 ## Download Data
 
-You can download the test data using the following commands:
+You can download the test data using the following links:
 
-```bash
+```
 # zip for Multiple Objects evaluation dataset 1.82GB
-wget -O test_multiple_obj.zip 'https://onedrive.live.com/download?resid=C3FEA201A5BB0A9A%2165462&authkey=!AAgnTe6fVsT2PLI'
+https://1drv.ms/u/c/c3fea201a5bb0a9a/EZoKu6UBov4ggMO2_wAAAAABqrqQiwi7b-mz3eyFl-bWPg?e=h01hIe
 
 # zip for Single Object evaluation dataset 2.55GB
-wget -O test_single_obj.zip 'https://onedrive.live.com/download?resid=C3FEA201A5BB0A9A%2165463&authkey=!ABBR6mHdMKB_0aQ'
+https://1drv.ms/u/c/c3fea201a5bb0a9a/EZoKu6UBov4ggMO4_wAAAAAB7Xt9yQr-Ha1mY5MdaB58FA?e=atOAp5
 
 # zip for Scale evaluation dataset 1.92GB
-wget -O test_scale.zip  'https://onedrive.live.com/download?resid=C3FEA201A5BB0A9A%2165464&authkey=!AHh7E9BHGZeYYXc'
+https://1drv.ms/u/c/c3fea201a5bb0a9a/EZoKu6UBov4ggMO3_wAAAAABfpoHSWvquAUxZ9m9PDahug?e=6zbahp
 
 ```
 
