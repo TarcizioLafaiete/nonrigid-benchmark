@@ -1,7 +1,10 @@
 import os
 import json
 from .io import load_sample, load_benchmark
+from .ransac import nr_RANSAC
 from .compute import warp_keypoints
+from .arap_metric.arap_based import ARAP
+from .arap_metric.utils import get_corresp_ransac,filter_matches_adalam
 import argparse
 from tqdm import tqdm
 import numpy as np
@@ -29,8 +32,8 @@ def plot(sample1, sample2, keypoints1, keypoints2, mkpts1, mkpts2):
 
 def eval_pair(args):
     pair, prediction, matching_th, make_plot = args
-    sample1 = load_sample(pair[0], read_coords=True, read_segmentation=True)
-    sample2 = load_sample(pair[1], read_coords=True, read_segmentation=True)
+    sample1 = load_sample(pair[0], read_coords=True, read_segmentation=True,read_depth=True)
+    sample2 = load_sample(pair[1], read_coords=True, read_segmentation=True,read_depth=True)
     
     matches = np.array(prediction['matches'])
     keypoints1 = np.array(prediction['keypoints1'])
@@ -46,6 +49,8 @@ def eval_pair(args):
             'ms':0,
             'ma':0,
             'rr':0,
+            'arap_3d_accurracy:':0,
+            'arap_2d_accurracy:':0
         }
 
     # masked_keypoints1 = [kp for kp, mask in zip(keypoints1, keypoints_mask1) if mask]
@@ -75,6 +80,8 @@ def eval_pair(args):
             'ms':0,
             'ma':0,
             'rr':repeatablility_1to2,
+            'arap_3d_accurracy:':0,
+            'arap_2d_accurracy:':0
         }
         
     mkpts1 = keypoints1[matches[:, 0]]
@@ -88,11 +95,34 @@ def eval_pair(args):
 
     ms = (dists < matching_th).sum() / minimun_keypoints
     ma = (dists < matching_th).sum() / len(matches)
-    
+
+    inliners = nr_RANSAC(mkpts1,mkpts2,'cpu')
+    kpt_src = mkpts1[inliners]
+    kpt_tgt = mkpts2[inliners]
+    D_src = np.array(sample1['depth'])
+    D_tgt = np.array(sample2['depth'])
+    mask1 = np.array(sample1['mask'])
+    mask2 = np.array(sample2['mask'])
+    K = sample1['K']
+    print(D_src.shape)
+    print(mask1.shape)
+
+    ARAP_reg = ARAP()
+    acc_2d,acc_3d = ARAP_reg.register_pair(kps_src=kpt_src,
+                                           kps_tgt=kpt_tgt,
+                                           D_ref=D_src,
+                                           D_tgt=D_tgt,
+                                           K=K,
+                                           tps_path="",
+                                           mask_ref=mask1,
+                                           mask_tgt=mask2)
+
     return {
         'ms':ms,
         'ma':ma,
         'rr':repeatablility_1to2,
+        'arap_3d_accurracy': acc_3d,
+        'arap_2d_accurracy': acc_2d
     }
 
 

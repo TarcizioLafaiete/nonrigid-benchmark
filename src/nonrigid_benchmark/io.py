@@ -1,8 +1,9 @@
 import cv2
 import os
 import json
+import numpy as np
 
-def load_sample(rgb_path:str, read_coords:bool=False, read_segmentation:bool=False):
+def load_sample(rgb_path:str, read_coords:bool=False, read_segmentation:bool=False,read_depth:bool=False):
     image = cv2.imread(rgb_path)
     mask = cv2.imread(rgb_path.replace('rgba', 'bgmask'), cv2.IMREAD_UNCHANGED)
 
@@ -12,11 +13,23 @@ def load_sample(rgb_path:str, read_coords:bool=False, read_segmentation:bool=Fal
     }
 
     if read_coords:
-        sample['uv_coords'] = cv2.imread(rgb_path.replace('rgba', 'uv'), cv2.IMREAD_UNCHANGED)
+        if os.path.exists(rgb_path.replace('rgba','uv')):
+            uv_coords = cv2.imread(rgb_path.replace('rgba', 'uv'), cv2.IMREAD_UNCHANGED)
+        else:
+            uv_coords = cv2.imread(rgb_path.replace('rgba','normal'),cv2.IMREAD_UNCHANGED)
+
+        sample['uv_coords'] = uv_coords
 
     if read_segmentation:
         sample['segmentation'] = cv2.imread(rgb_path.replace('rgba', 'segmentation'), cv2.IMREAD_UNCHANGED)
-        
+
+    if read_depth:
+        sample['depth'] = cv2.imread(rgb_path.replace('rgba','depth').replace('png','tiff'),cv2.IMREAD_UNCHANGED)
+        with open(os.path.join(os.path.dirname(rgb_path),'metadata.json')) as f:
+            data = json.load(f)
+            K = np.array(data['camera']['K'])
+            sample['K'] = K/K[2,2]
+
     return sample
 
 
