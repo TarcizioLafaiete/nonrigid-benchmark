@@ -138,7 +138,7 @@ class ARAP:
         depth[~mask.astype(bool)] = 0
 
 
-    def register_pair(self, kps_src, kps_tgt, D_ref, D_tgt, K, tps_path,
+    def register_pair(self, kps_src, kps_tgt, D_ref, D_tgt, K, samples,warp_func,
                         mask_ref = None, mask_tgt = None, npyr = 2,
                         thr_2d = [2.0, 3.0, 5.0], 
                         thr_3d = [5., 10., 15.],
@@ -166,6 +166,8 @@ class ARAP:
         scale_factor = 1/(2.**npyr)
         K = K.copy()
         K[:2, :] *= scale_factor
+
+        src_sample,tgt_sample = samples
 
         shape_im1 = D_ref.shape[:2]
         shape_im2 = D_tgt.shape[:2]
@@ -254,11 +256,19 @@ class ARAP:
         dists_3d, idxs = tree.query(xyz)
 
         #Query 2D ground-truth TPS for correctness
-        undeformed_tgt_2d = self.perspective_project(xyz, K) / scale_factor
-        tgt_2d = self.perspective_project(xyz_o, K) / scale_factor
+        undeformed_tgt_2d = self.perspective_project(xyz, K) / scale_factor #Produzido a partir da deformacao de mesh2 -> mesh1 ou tgt -> src
+        tgt_2d = self.perspective_project(xyz_o, K) / scale_factor # Sao os pontos do tgt em 2D
         img_shape = np.array([D_tgt.shape[1], D_tgt.shape[0]], dtype= np.float32) / scale_factor
-        gt_undeformed = utils.compute_gt_warp(tgt_2d / img_shape, tps_path) * img_shape
-        dists_2d = np.linalg.norm(undeformed_tgt_2d - gt_undeformed, axis = 1)
+        result = warp_func(tgt_2d,
+                           tgt_sample['uv_coords'],
+                           src_sample['uv_coords'],
+                           tgt_sample['segmentation'],
+                           src_sample['segmentation'],
+                           300)
+        # gt_undeformed = utils.compute_gt_warp(tgt_2d / img_shape, tps_path) * img_shape # As duas imagens tem pontos
+        valid_mask = (result['keypoints'][:, 0] != -1)  # Filtra pontos inválidos
+        gt_undeformed = result['keypoints']
+        dists_2d = np.linalg.norm(undeformed_tgt_2d[valid_mask] - gt_undeformed[valid_mask], axis = 1)
 
         #print(tgt_2d)
         #pdb.set_trace()

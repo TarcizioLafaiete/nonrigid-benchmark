@@ -104,8 +104,7 @@ def eval_pair(args):
     mask1 = np.array(sample1['mask'])
     mask2 = np.array(sample2['mask'])
     K = sample1['K']
-    print(D_src.shape)
-    print(mask1.shape)
+    print(K)
 
     ARAP_reg = ARAP()
     acc_2d,acc_3d = ARAP_reg.register_pair(kps_src=kpt_src,
@@ -113,7 +112,8 @@ def eval_pair(args):
                                            D_ref=D_src,
                                            D_tgt=D_tgt,
                                            K=K,
-                                           tps_path="",
+                                           samples=(sample1,sample2),
+                                           warp_func=warp_keypoints,
                                            mask_ref=mask1,
                                            mask_tgt=mask2)
 
