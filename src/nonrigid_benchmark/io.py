@@ -13,11 +13,7 @@ def load_sample(rgb_path:str, read_coords:bool=False, read_segmentation:bool=Fal
     }
 
     if read_coords:
-        if os.path.exists(rgb_path.replace('rgba','uv')):
-            uv_coords = cv2.imread(rgb_path.replace('rgba', 'uv'), cv2.IMREAD_UNCHANGED)
-        else:
-            uv_coords = cv2.imread(rgb_path.replace('rgba','normal'),cv2.IMREAD_UNCHANGED)
-
+        uv_coords = cv2.imread(rgb_path.replace('rgba', 'uv'), cv2.IMREAD_UNCHANGED)
         sample['uv_coords'] = uv_coords
 
     if read_segmentation:
