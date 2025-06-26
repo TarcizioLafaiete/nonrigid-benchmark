@@ -4,8 +4,9 @@ import json
 import numpy as np
 
 def load_sample(rgb_path:str, read_coords:bool=False, read_segmentation:bool=False,read_depth:bool=False):
+
     image = cv2.imread(rgb_path)
-    mask = cv2.imread(rgb_path.replace('rgba', 'bgmask'), cv2.IMREAD_UNCHANGED)
+    mask = cv2.imread(rgb_path.replace('rgba', 'bgamask'), cv2.IMREAD_UNCHANGED)
 
     sample = {
         'image': image,

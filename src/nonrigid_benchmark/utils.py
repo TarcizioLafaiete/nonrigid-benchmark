@@ -105,7 +105,8 @@ def eval_loop_cached(benchmark_path, predictions_path, extract_fn, match_fn, dat
 
         features = {}
         for image in tqdm(unique_images, desc=f'{dataset_type} | Extracting features'):
-            features[image] = extract_fn(load_sample(image))
+            
+            features[image] = extract_fn(load_sample(benchmark_path + dataset_type + image))
 
         for s_idx, split in enumerate(selected_pairs.keys()):
             json_file = os.path.join(predictions_path,dataset_type, f'{split}.json')

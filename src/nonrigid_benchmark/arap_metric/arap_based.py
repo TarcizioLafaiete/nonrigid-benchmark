@@ -8,6 +8,7 @@ import time
 from scipy.spatial import KDTree
 import pdb
 import matplotlib.pyplot as plt
+import faiss
 
 
 class ARAP:
@@ -207,7 +208,7 @@ class ARAP:
 
         if len(idx_src) < 8 and len(idx_tgt) < 8:
             print(" #######  WARNING: Too few matching points, skipping... ####### \n\n")
-            return [0,0,0], [0,0,0]
+            return [0,0,0], [0,0,0],False
 
         #build open3d structure
         mesh1 = o3d.geometry.TriangleMesh()
@@ -227,12 +228,16 @@ class ARAP:
 
         with o3d.utility.VerbosityContextManager(
                 o3d.utility.VerbosityLevel.Warning ) as cm: #Debug
-            mesh_prime_t_s = mesh2.deform_as_rigid_as_possible(constraint_ids_t_s,
+            try:
+                mesh_prime_t_s = mesh2.deform_as_rigid_as_possible(constraint_ids_t_s,
                                                         constraint_pos_t_s,
                                                         max_iter=25 ,
                                                         energy = self.model,
                                                         smoothed_alpha=0.1
                                                         )
+            except RuntimeError as e:
+                print(f"[WARNING] Falha no ARAP deform, skipping ...")
+                return [0,0,0],[0,0,0],False
         
 
         xyz = np.asarray(mesh_prime_t_s.vertices)
@@ -243,17 +248,17 @@ class ARAP:
 
         xyz_o = np.asarray(mesh2.vertices)
         ijk_o = np.asarray(mesh2.triangles)
-        
-        #print('done in %.2f'%(time.time() - t0))
+    
         if plot_ref:
             utils.plot_meshes(xyz2, ijk2, xyz_o, ijk_o, save_name + '-REF' if save_name != '' else '')
             
-        utils.plot_meshes(xyz2, ijk2, xyz, ijk, save_name)
+        # utils.plot_meshes(xyz2, ijk2, xyz, ijk, save_name)
         #input('...')
 
         #Query 3D points for correctness
         tree = KDTree(xyz2)
         dists_3d, idxs = tree.query(xyz)
+
 
         #Query 2D ground-truth TPS for correctness
         undeformed_tgt_2d = self.perspective_project(xyz, K) / scale_factor #Produzido a partir da deformacao de mesh2 -> mesh1 ou tgt -> src
@@ -276,4 +281,6 @@ class ARAP:
         accuracy_3d = [ (dists_3d < thr).sum() / len(dists_3d) for thr in thr_3d]
         accuracy_2d = [ (dists_2d < thr).sum() / len(dists_2d) for thr in thr_2d]
 
-        return accuracy_2d, accuracy_3d
+        print('done in %.2f'%(time.time() - t0))
+
+        return accuracy_2d, accuracy_3d,True

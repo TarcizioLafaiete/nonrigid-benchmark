@@ -67,6 +67,9 @@ def nr_RANSAC(ref_pts, tgt_pts, device, batch = 4_000, thr = 0.1):
         inliers = residuals < thr
         inliers = inliers[good_mask]
         count = inliers.sum(dim=1)
+        if count.numel() == 0:  # ou len(count) == 0 para array numpy
+            print("[WARNING] Nenhuma hipótese RANSAC gerada.")
+            return []  # ou algum valor default apropriado
         best = count.argmax()
 
     return inliers[best].cpu().numpy()

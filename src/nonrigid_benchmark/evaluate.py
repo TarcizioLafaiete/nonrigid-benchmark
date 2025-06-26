@@ -10,7 +10,7 @@ from tqdm import tqdm
 import numpy as np
 import multiprocessing
 from scipy.spatial.distance import cdist
-
+i = 0
 def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, required=True, help="Path to the matches file")
@@ -32,8 +32,9 @@ def plot(sample1, sample2, keypoints1, keypoints2, mkpts1, mkpts2):
 
 def eval_pair(args):
     pair, prediction, matching_th, make_plot = args
-    sample1 = load_sample(pair[0], read_coords=True, read_segmentation=True,read_depth=True)
-    sample2 = load_sample(pair[1], read_coords=True, read_segmentation=True,read_depth=True)
+    print(f"Eval between: {pair[0]} and {pair[1]}")
+    sample1 = load_sample("../simulation/simulation/test_single_obj/" + pair[0], read_coords=True, read_segmentation=True,read_depth=True)
+    sample2 = load_sample("../simulation/simulation/test_single_obj/" + pair[1], read_coords=True, read_segmentation=True,read_depth=True)
     
     matches = np.array(prediction['matches'])
     keypoints1 = np.array(prediction['keypoints1'])
@@ -49,8 +50,9 @@ def eval_pair(args):
             'ms':0,
             'ma':0,
             'rr':0,
-            'arap_3d_accurracy:':0,
-            'arap_2d_accurracy:':0
+            'arap_3d_accurracy':[0,0,0],
+            'arap_2d_accurracy':[0,0,0],
+            'arap_skip': False
         }
 
     # masked_keypoints1 = [kp for kp, mask in zip(keypoints1, keypoints_mask1) if mask]
@@ -80,8 +82,9 @@ def eval_pair(args):
             'ms':0,
             'ma':0,
             'rr':repeatablility_1to2,
-            'arap_3d_accurracy:':0,
-            'arap_2d_accurracy:':0
+            'arap_3d_accurracy':[0,0,0],
+            'arap_2d_accurracy':[0,0,0],
+            'arap_skip': False
         }
         
     mkpts1 = keypoints1[matches[:, 0]]
@@ -104,10 +107,11 @@ def eval_pair(args):
     mask1 = np.array(sample1['mask'])
     mask2 = np.array(sample2['mask'])
     K = sample1['K']
-    print(K)
+    # print(K)
 
+    # acc_2d,acc_3d = [0,0,0],[0,0,0]
     ARAP_reg = ARAP()
-    acc_2d,acc_3d = ARAP_reg.register_pair(kps_src=kpt_src,
+    acc_2d,acc_3d,skip = ARAP_reg.register_pair(kps_src=kpt_src,
                                            kps_tgt=kpt_tgt,
                                            D_ref=D_src,
                                            D_tgt=D_tgt,
@@ -122,7 +126,8 @@ def eval_pair(args):
         'ma':ma,
         'rr':repeatablility_1to2,
         'arap_3d_accurracy': acc_3d,
-        'arap_2d_accurracy': acc_2d
+        'arap_2d_accurracy': acc_2d,
+        'arap_skip': skip
     }
 
 
@@ -132,10 +137,6 @@ def main():
     nproc = args.nproc
     
     predictions = json.load(open(args.input, 'r'))
-    
-    outfile_path = args.output
-    split = args.split
-    
     metrics = {
         'ms': [],
         'ma': [],
