@@ -17,6 +17,7 @@ def parse():
     parser.add_argument("--plot", action='store_true', help="Plot the results")
     parser.add_argument("--dataset_type", default='test_single_obj',help="Dataset type")
     parser.add_argument("--metric_file",default="metrics/",help="Doc where the evaluation will be stored")
+    parser.add_argument("--progress_file",default="progress.json",help="Doc where mark the completed evaluations")
     return parser.parse_args()
 
 
@@ -28,12 +29,14 @@ if __name__ == "__main__":
     selected_pairs = load_benchmark(os.path.join(args.dataset, args.dataset_type))
 
     nproc = args.nproc
+
+    # args.plot = True
     
     predictions_file = [f for f in os.listdir(args.input) if f.endswith('.json')]
     split_names = [os.path.splitext(f)[0] for f in predictions_file]
 
-    if os.path.exists("progress.json"):
-        with open("progress.json", 'r') as f:
+    if os.path.exists(args.progress_file):
+        with open(args.progress_file, 'r') as f:
             data = json.load(f)
     else:
         data = {"passed": []}
@@ -116,7 +119,7 @@ if __name__ == "__main__":
             json.dump(output_dict, f, indent=4)
 
         data['passed'].append(pred_file)
-        with open("progress.json", 'w') as f:
+        with open(args.progress_file, 'w') as f:
             json.dump(data, f, indent=4)
 
         

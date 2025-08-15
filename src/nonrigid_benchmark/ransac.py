@@ -11,7 +11,6 @@ def normalize(pts):
     if norm_avg < 1e-8:
         norm_avg = 1e-8
 
-
     pts = pts / norm_avg * np.sqrt(2.)
     return pts
 
@@ -44,15 +43,19 @@ def nr_RANSAC(ref_pts, tgt_pts, device, batch = 4_000, thr = 0.1):
     
     ref_pts = torch.tensor(ref_pts)
     tgt_pts = torch.tensor(tgt_pts)
+
+    valid_mask = (
+        torch.isfinite(ref_pts).all(dim=1) &
+        torch.isfinite(tgt_pts).all(dim=1)
+    )
+
+    # Aplica a máscara para manter apenas pares válidos
+    ref_pts = ref_pts[valid_mask]
+    tgt_pts = tgt_pts[valid_mask]
+
     with torch.no_grad():
         ref_pts = ref_pts.to(device)
         tgt_pts = tgt_pts.to(device)
-
-        mask = ~torch.isnan(ref_pts).any(dim=1) & ~torch.isnan(tgt_pts).any(dim=1)
-        mask &= ~torch.isinf(ref_pts).any(dim=1) & ~torch.isinf(tgt_pts).any(dim=1)
-        ref_pts = ref_pts[mask]
-        tgt_pts = tgt_pts[mask]
-
 
         ref_pts = normalize(ref_pts)
         tgt_pts = normalize(tgt_pts)
