@@ -1,0 +1,17 @@
+{
+    "Matching Score": 0.36722502321628836,
+    "Matching Accuracy": 0.7222928427130971,
+    "Repeatability": 0.5768066609725403,
+    "ARAP Registration 2D Accuracy": [
+        0.3210086727513148,
+        0.49431991674480796,
+        0.632621516095514
+    ],
+    "ARAP Registration 3D Accuracy": [
+        0.1330711449796862,
+        0.31799002328816295,
+        0.5235112581466858
+    ],
+    "ARAP Skipping": 314,
+    "Skip Proportion": 0.785
+}
